@@ -22,7 +22,10 @@
 					}
 				},
 				"terminal.integrated.defaultProfile.linux": "zsh"
-			}
+			},
+			"extensions": [
+				"humao.rest-client"
+			]
 		}
 	}
 
