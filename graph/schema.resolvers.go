@@ -11,6 +11,23 @@ import (
 	"github.com/fabiohsgomes/go-expert-estudos-graphql/graph/model"
 )
 
+// Courses is the resolver for the courses field.
+func (r *categoryResolver) Courses(ctx context.Context, obj *model.Category) ([]*model.Course, error) {
+	courses, err := r.CourseDB.FindByCategoryID(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	var coursesModel []*model.Course
+	for _, course := range courses {
+		coursesModel = append(coursesModel, &model.Course{
+			ID:          course.ID,
+			Name:        course.Name,
+			Description: course.Description,
+		})
+	}
+	return coursesModel, nil
+}
+
 // AddCategory is the resolver for the addCategory field.
 func (r *mutationResolver) AddCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
 	category, err := r.CategoryDB.Create(input.Name, *input.Description)
@@ -27,12 +44,33 @@ func (r *mutationResolver) AddCategory(ctx context.Context, input model.NewCateg
 
 // AddCourse is the resolver for the addCourse field.
 func (r *mutationResolver) AddCourse(ctx context.Context, input model.NewCourse) (*model.Course, error) {
-	panic(fmt.Errorf("not implemented: AddCourse - addCourse"))
+	course, err := r.CourseDB.Create(input.Name, *input.Description, input.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Course{
+		ID:          course.ID,
+		Name:        course.Name,
+		Description: course.Description,
+	}, nil
 }
 
 // Categories is the resolver for the categories field.
 func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
-	panic(fmt.Errorf("not implemented: Categories - categories"))
+	categories, err := r.CategoryDB.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	var categoriesModel []*model.Category
+	for _, category := range categories {
+		categoriesModel = append(categoriesModel, &model.Category{
+			ID:          category.ID,
+			Name:        category.Name,
+			Description: category.Description,
+		})
+	}
+	return categoriesModel, nil
 }
 
 // Category is the resolver for the category field.
@@ -40,26 +78,37 @@ func (r *queryResolver) Category(ctx context.Context, id string) (*model.Categor
 	panic(fmt.Errorf("not implemented: Category - category"))
 }
 
+// Courses is the resolver for the courses field.
+func (r *queryResolver) Courses(ctx context.Context) ([]*model.Course, error) {
+	courses, err := r.CourseDB.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	var coursesModel []*model.Course
+	for _, course := range courses {
+		coursesModel = append(coursesModel, &model.Course{
+			ID:          course.ID,
+			Name:        course.Name,
+			Description: course.Description,
+		})
+	}
+	return coursesModel, nil
+}
+
+// Course is the resolver for the course field.
+func (r *queryResolver) Course(ctx context.Context, id string) (*model.Course, error) {
+	panic(fmt.Errorf("not implemented: Course - course"))
+}
+
+// Category returns CategoryResolver implementation.
+func (r *Resolver) Category() CategoryResolver { return &categoryResolver{r} }
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+type categoryResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
-}
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
-}
-*/
